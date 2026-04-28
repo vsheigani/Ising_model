@@ -1,6 +1,6 @@
 # 2D Ising Model — Monte Carlo Simulation
 
-A Python implementation of the two-dimensional ferromagnetic Ising model, simulated with the Metropolis Monte Carlo algorithm. The code reproduces the paramagnetic-to-ferromagnetic phase transition and lets you measure thermodynamic observables (energy, magnetisation, specific heat, susceptibility) as functions of temperature.
+A Python implementation of the two-dimensional ferromagnetic Ising model, simulated with the Metropolis Monte Carlo algorithm and accelerated with JAX (JIT-compiled via XLA). The code reproduces the paramagnetic-to-ferromagnetic phase transition and lets you measure thermodynamic observables (energy, magnetisation, specific heat, susceptibility) as functions of temperature.
 
 ---
 
@@ -15,6 +15,7 @@ A Python implementation of the two-dimensional ferromagnetic Ising model, simula
 3. [Numerical Method](#numerical-method)
    - [The Metropolis Algorithm](#the-metropolis-algorithm)
    - [Checkerboard Updates](#checkerboard-updates)
+   - [JAX Acceleration](#jax-acceleration)
    - [Slow Cooling Protocol](#slow-cooling-protocol)
 4. [Project Structure](#project-structure)
 5. [Setup](#setup)
@@ -29,7 +30,9 @@ The Ising model is one of the most important exactly solvable models in statisti
 
 This project provides:
 
-- **`ising_model.py`** — a self-contained Python module with a single function `run_ising_model(...)` that runs the simulation and returns results as a `pandas.DataFrame`.
+- **`ising_model.py`** — a self-contained Python module using JAX (`jax.numpy` 
+arrays and `@jax.jit`-compiled update kernels) with a single function 
+`run_ising_model(...)` that runs the simulation and returns results as a `pandas.DataFrame`.
 - **`Ising_simulation.ipynb`** — a Jupyter notebook that runs the simulation and produces publication-quality plots of all thermodynamic observables, including a finite-size scaling comparison.
 
 ---
@@ -128,7 +131,7 @@ One **Monte Carlo sweep (MCS)** consists of $N = L^2$ such steps, so on average 
 
 ### Checkerboard Updates
 
-Selecting spins uniformly at random (as in the original C++ code) requires a Python loop over $N$ spins per sweep, which is slow. Instead, we use **checkerboard (sublattice) updates**:
+Rather than selecting spins one at a time (which would require a Python loop over N spins per sweep), we use **checkerboard (sublattice) updates** combined with JAX JIT compilation for maximum throughput:
 
 The lattice is divided into two sublattices — like the black and white squares of a chessboard:
 - **Sublattice A**: sites $(i,j)$ with $(i+j)$ even
@@ -136,9 +139,27 @@ The lattice is divided into two sublattices — like the black and white squares
 
 Crucially, all nearest neighbours of an A-site are B-sites and vice versa. This means **all sites within one sublattice can be updated simultaneously**: their acceptance decisions are independent because they do not interact with each other.
 
-This allows fully vectorised NumPy operations, making the code orders of magnitude faster than a Python spin-by-spin loop while producing statistically equivalent results.
+This allows all sublattice updates to be expressed as fully vectorised `jax.numpy` operations and compiled once to XLA bytecode via `@jax.jit`, making each sweep orders of magnitude faster than a Python spin-by-spin loop while producing statistically equivalent results.
 
 One sweep = one simultaneous update of sublattice A + one simultaneous update of sublattice B.
+
+### JAX Acceleration
+
+The checkerboard update kernel is decorated with `@jax.jit`, which triggers 
+XLA compilation on the first call. Subsequent calls skip Python overhead 
+entirely and execute compiled machine code, typically yielding a further 
+5–20× speedup over an equivalent NumPy implementation for large lattices.
+
+JAX also uses an explicit, functional PRNG system. Rather than a global 
+random state, each stochastic step receives an explicit key:
+
+```python
+key, subkey = jax.random.split(key)
+r = jax.random.uniform(subkey, shape=sublattice.shape)
+```
+
+This makes the simulation fully reproducible and compatible with JAX's 
+functional transformation model (`jax.vmap`, `jax.grad` for future extensions).
 
 ### Slow Cooling Protocol
 
@@ -162,11 +183,12 @@ Ising_model/
 
 ### Requirements
 
-- Python 3.12+
-- `numpy`
-- `pandas`
-- `matplotlib`
-- `jupyter` / `notebook`
+* Python 3.12+
+* `jax` (>=0.10.0, with `jaxlib` — installs automatically via `uv sync`)
+* `numpy`
+* `pandas`
+* `matplotlib`
+* `jupyter` / `notebook`
 
 ### Installation with `uv` (recommended)
 
