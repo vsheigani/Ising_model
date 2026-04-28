@@ -224,7 +224,7 @@ jupyter lab Ising_simulation.ipynb
 Run all cells from top to bottom. The notebook will:
 1. Run a single simulation for $L = 36$, MCS = 1000.
 2. Plot magnetisation, energy, specific heat, and susceptibility vs temperature.
-3. Run simulations for $L \in {4, 12, 36, 100}$ and produce a finite-size scaling comparison.
+3. Run simulations for $L \in \\{4, 12, 36, 100\\}$ and produce a finite-size scaling comparison.
 4. Print a table of pseudo-critical temperatures and peak heights.
 
 Saved plots (`observables_L36.png`, `finite_size_scaling.png`) will appear in the project directory.
