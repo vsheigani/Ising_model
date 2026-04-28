@@ -29,7 +29,7 @@ The Ising model is one of the most important exactly solvable models in statisti
 
 This project provides:
 
-- **`Ising_model.py`** — a self-contained Python module with a single function `run_ising_model(...)` that runs the simulation and returns results as a `pandas.DataFrame`.
+- **`ising_model.py`** — a self-contained Python module with a single function `run_ising_model(...)` that runs the simulation and returns results as a `pandas.DataFrame`.
 - **`Ising_simulation.ipynb`** — a Jupyter notebook that runs the simulation and produces publication-quality plots of all thermodynamic observables, including a finite-size scaling comparison.
 
 ---
@@ -188,7 +188,7 @@ source .venv/bin/activate
 ### As a Python module
 
 ```python
-from Ising_model import run_ising_model
+from ising_model import run_ising_model
 
 # Run with default parameters (L=36, MCS=1000)
 df = run_ising_model(L=36, MCS=1000, T_start=4.0, T_end=0.5, dT=0.05, seed=42)
