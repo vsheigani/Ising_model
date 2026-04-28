@@ -19,7 +19,6 @@ A Python implementation of the two-dimensional ferromagnetic Ising model, simula
 4. [Project Structure](#project-structure)
 5. [Setup](#setup)
 6. [Running the Simulation](#running-the-simulation)
-7. [Expected Results](#expected-results)
 8. [References](#references)
 
 ---
@@ -30,9 +29,8 @@ The Ising model is one of the most important exactly solvable models in statisti
 
 This project provides:
 
-- **`ising_model.py`** — a self-contained Python module with a single function `run_ising_model(...)` that runs the simulation and returns results as a `pandas.DataFrame`.
+- **`Ising_model.py`** — a self-contained Python module with a single function `run_ising_model(...)` that runs the simulation and returns results as a `pandas.DataFrame`.
 - **`Ising_simulation.ipynb`** — a Jupyter notebook that runs the simulation and produces publication-quality plots of all thermodynamic observables, including a finite-size scaling comparison.
-- **`Ising_model.cpp`** — the original C++ implementation the Python code is based on.
 
 ---
 
@@ -154,7 +152,6 @@ Rather than re-initialising the lattice at each temperature, we carry the spin c
 Ising_model/
 ├── ising_model.py          # Python module: run_ising_model() function
 ├── Ising_simulation.ipynb  # Jupyter notebook: runs simulation and plots results
-├── Ising_model.cpp         # Original C++ implementation
 ├── pyproject.toml          # Project dependencies (uv / pip)
 └── README.md               # This file
 ```
@@ -184,14 +181,6 @@ uv sync
 source .venv/bin/activate
 ```
 
-### Installation with `pip`
-
-```bash
-python -m venv .venv
-source .venv/bin/activate       # On Windows: .venv\Scripts\activate
-pip install numpy pandas matplotlib jupyter
-```
-
 ---
 
 ## Running the Simulation
@@ -199,7 +188,7 @@ pip install numpy pandas matplotlib jupyter
 ### As a Python module
 
 ```python
-from ising_model import run_ising_model
+from Ising_model import run_ising_model
 
 # Run with default parameters (L=36, MCS=1000)
 df = run_ising_model(L=36, MCS=1000, T_start=4.0, T_end=0.5, dT=0.05, seed=42)
@@ -239,18 +228,6 @@ Run all cells from top to bottom. The notebook will:
 4. Print a table of pseudo-critical temperatures and peak heights.
 
 Saved plots (`observables_L36.png`, `finite_size_scaling.png`) will appear in the project directory.
-
----
-
-## Expected Results
-
-| Temperature | M/N | E/N | Cv | chi |
-|---|---|---|---|---|
-| T << Tc (e.g. 0.5) | ~1.0 | ~-2.0 | small | small |
-| T ~ Tc ~ 2.27 | ~0.5–0.7 | ~-1.3 | **peak** | **peak** |
-| T >> Tc (e.g. 4.0) | ~0.0 | ~0.0 | small | small |
-
-The specific heat peak for $L = 36$ appears around $T \approx 2.3$–$2.4$ (shifted above $T_c$ by finite-size effects), and the susceptibility peak is a reliable indicator of the pseudo-critical temperature $T_c(L)$.
 
 ---
 
